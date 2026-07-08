@@ -20,7 +20,13 @@ jobs:
       - name: Install deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu make bc bison flex libssl-dev kmod cpio xz-utils
+          sudo apt-get install -y make bc bison flex libssl-dev kmod cpio xz-utils wget
+
+      - name: Setup toolchain
+        run: |
+          wget -q https://releases.linaro.org/components/toolchain/binaries/7.5-2019.12/aarch64-linux-gnu/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz
+          tar -xf gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz
+          echo "$(pwd)/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu/bin" >> $GITHUB_PATH
 
       - name: Build
         run: |
