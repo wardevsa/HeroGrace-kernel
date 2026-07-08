@@ -13,18 +13,25 @@ jobs:
         with:
           ref: stable
           fetch-depth: 1
+
+      - name: Init submodules
+        run: git submodule update --init --recursive
+
       - name: Install deps
         run: |
           sudo apt-get update
           sudo apt-get install -y gcc-aarch64-linux-gnu make bc bison flex libssl-dev kmod cpio xz-utils
+
       - name: Build
         run: |
           export CROSS_COMPILE=aarch64-linux-gnu-
           export ARCH=arm64
           export KCONFIG_NOTIMESTAMP=true
+          export ANDROID_MAJOR_VERSION=14
           mkdir -p out
           make O=out hero_defconfig
           make -j$(nproc) O=out Image
+
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
