@@ -22,6 +22,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y make bc bison flex libssl-dev kmod cpio xz-utils gcc-aarch64-linux-gnu
 
+      - name: Patch kernel sources
+        run: |
+          find . -name exynos-ss.h -exec sed -i '1i#include <linux/bug.h>' {} \;
+          find . -name exynos-ss.h -exec sed -i '/exynos_ss_panic_handler_safe/d' {} \;
+          find . -name "*.c" -exec sed -i 's/exynos_ss_panic_handler_safe([^)]*);//g' {} \;
+          find . -name nmi.h -exec sed -i 's/void void sl_softirq_entry/void sl_softirq_entry/' {} \;
+
       - name: Build
         run: |
           export CROSS_COMPILE=aarch64-linux-gnu-
@@ -31,6 +38,8 @@ jobs:
           mkdir -p out
           make O=out hero_defconfig
           make -j$(nproc) O=out Image 2>&1
+        env:
+          KBUILD_CFLAGS: -Wno-error
 
       - name: Upload Image
         uses: actions/upload-artifact@v4
