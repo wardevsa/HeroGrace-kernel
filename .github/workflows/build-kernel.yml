@@ -36,7 +36,7 @@ jobs:
           # input/input.h: disable CONFIG_ARCH_EXYNOS booster block entirely
           printf '%s\n' 'with open("include/linux/input/input.h") as f:' \
             '    c = f.read()' \
-            'dummy = "#ifndef CONFIG_ARCH_EXYNOS" + chr(10) + "#define PROPERTY_BOOSTER(...) do {} while(0)" + chr(10) + "#define SET_BOOSTER do {} while(0)" + chr(10) + "#define REMOVE_BOOSTER do {} while(0)" + chr(10) + "#define CHANGE_BOOSTER(...) do {} while(0)" + chr(10) + "#endif" + chr(10) + chr(10) + "#if defined(CONFIG_ARCH_EXYNOS)"' \
+            'dummy = "#ifndef CONFIG_ARCH_EXYNOS" + chr(10) + "#define PROPERTY_BOOSTER(...)" + chr(10) + "#define SET_BOOSTER" + chr(10) + "#define REMOVE_BOOSTER" + chr(10) + "#endif" + chr(10) + "#if defined(CONFIG_ARCH_EXYNOS)"' \
             'c = c.replace("#if defined(CONFIG_ARCH_EXYNOS)", dummy, 1)' \
             'with open("include/linux/input/input.h", "w") as f:' \
             '    f.write(c)' > /tmp/patch_input.py; python3 /tmp/patch_input.py
