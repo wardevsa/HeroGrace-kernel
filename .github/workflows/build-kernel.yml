@@ -30,10 +30,9 @@ jobs:
           find . -name "*.c" -exec sed -i 's/exynos_ss_panic_handler_safe([^)]*);//g' {} \;
           find . -name "*.c" -exec sed -i 's/exynos_ss_clockevent([^)]*);//g' {} \;
           find . -name nmi.h -exec sed -i 's/void void sl_softirq_entry/void sl_softirq_entry/' {} \;
-          find . -path "*mm/fault.c" -exec sed -i 's/^void show_pte/extern void show_pte/' {} \;
-          # Remove CONFIG_SCHED_WLR or disable avg load tracking in fair.c
-          sed -i '/CONFIG_SCHED_WLR/d' arch/arm64/configs/hero_defconfig || true
-          echo '# CONFIG_SCHED_WLR is not set' >> arch/arm64/configs/hero_defconfig
+          # Enable CONFIG_FAIR_GROUP_SCHED which is needed for rq->avg in Samsung HMP scheduler
+          echo 'CONFIG_FAIR_GROUP_SCHED=y' >> arch/arm64/configs/hero_defconfig
+          echo 'CONFIG_CFS_BANDWIDTH=y' >> arch/arm64/configs/hero_defconfig
 
       - name: Build
         run: |
