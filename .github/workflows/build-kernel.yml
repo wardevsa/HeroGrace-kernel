@@ -26,8 +26,12 @@ jobs:
         run: |
           # Fix missing BUG() include in exynos-ss.h
           find . -name exynos-ss.h -exec sed -i '1i#include <linux/bug.h>' {} \;
-          # Fix exynos_ss_panic_handler_safe macro - kernel calls it with arg but macro takes 0
-          find . -name exynos-ss.h -exec sed -i 's/exynos_ss_panic_handler_safe()/exynos_ss_panic_handler_safe(...)/g' {} \;
+          # Remove exynos_ss_panic_handler_safe macro + all calls + externs (breaks with GCC 10+)
+          find . -name exynos-ss.h -exec sed -i '/exynos_ss_panic_handler_safe/d' {} \;
+          find . -name "*.c" -exec sed -i 's/exynos_ss_panic_handler_safe([^)]*);//g' {} \;
+          find . -name "*.c" -exec sed -i '/extern.*exynos_ss_panic_handler_safe/d' {} \;
+          # Fix double void in nmi.h (GCC 13+)
+          find . -name nmi.h -exec sed -i 's/void void sl_softirq_entry/void sl_softirq_entry/' {} \;
 
       - name: Set up build config
         run: |
