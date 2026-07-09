@@ -33,6 +33,9 @@ jobs:
           find . -name nmi.h -exec sed -i 's/void void sl_softirq_entry/void sl_softirq_entry/' {} \;
           # dlog_hook.c: missing includes for magic.h and sched.h
           sed -i '/^#include "mount.h"/a #include <linux/sched.h>\n#include <linux/magic.h>' fs/dlog_hook.c
+          # input/input.h: provide dummy booster macros for missing CONFIG_ARCH_EXYNOS
+          sed -i '/^#if defined(CONFIG_ARCH_EXYNOS)/i\
+#ifndef CONFIG_ARCH_EXYNOS\n#define PROPERTY_BOOSTER(...) do {} while(0)\n#define SET_BOOSTER  do {} while(0)\n#define REMOVE_BOOSTER do {} while(0)\n#endif' include/linux/input/input.h
 
       - name: Build
         run: |
@@ -50,8 +53,8 @@ jobs:
           done
           # Re-sync config after forced scheduler changes
           make O=out olddefconfig 2>&1
-          # Force Exynos arch and Mali GPU (input booster macros need ARCH_EXYNOS)
-          for opt in ARCH_EXYNOS MALI_T8XX MALI_R7P0; do
+          # Force Mali GPU (T8XX + r7p0 for S7 Mali-T880)
+          for opt in MALI_T8XX MALI_R7P0; do
             sed -i "/^# CONFIG_${opt} is not set/d;/^CONFIG_${opt}=/d" out/.config
             echo "CONFIG_${opt}=y" >> out/.config
           done
