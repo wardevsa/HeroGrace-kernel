@@ -22,6 +22,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y make bc bison flex libssl-dev kmod cpio xz-utils wget gcc-aarch64-linux-gnu
 
+      - name: Patch kernel sources
+        run: |
+          # Strip -Werror from all Makefiles globally
+          find . -name Makefile -exec sed -i 's/-Werror//g' {} +
+          # Fix missing BUG() include in exynos-ss.h if it exists
+          find . -name exynos-ss.h -exec sed -i '1i#include <linux/bug.h>' {} \;
+
       - name: Build
         run: |
           export CROSS_COMPILE=aarch64-linux-gnu-
@@ -30,7 +37,7 @@ jobs:
           export ANDROID_MAJOR_VERSION=14
           mkdir -p out
           make O=out hero_defconfig
-          make -j$(nproc) O=out Image KBUILD_CFLAGS="-Wno-error" 2>&1
+          make -j$(nproc) O=out Image 2>&1
 
       - name: Upload Image
         uses: actions/upload-artifact@v4
