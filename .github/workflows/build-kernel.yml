@@ -34,8 +34,18 @@ jobs:
           # dlog_hook.c: missing includes for magic.h and sched.h
           sed -i '/^#include "mount.h"/a #include <linux/sched.h>\n#include <linux/magic.h>' fs/dlog_hook.c
           # input/input.h: provide dummy booster macros for missing CONFIG_ARCH_EXYNOS
-          sed -i '/^#if defined(CONFIG_ARCH_EXYNOS)/i\
-#ifndef CONFIG_ARCH_EXYNOS\n#define PROPERTY_BOOSTER(...) do {} while(0)\n#define SET_BOOSTER  do {} while(0)\n#define REMOVE_BOOSTER do {} while(0)\n#endif' include/linux/input/input.h
+          sed -i '/^#if defined(CONFIG_ARCH_EXYNOS)/ {
+            i\
+#ifndef CONFIG_ARCH_EXYNOS
+            i\
+#define PROPERTY_BOOSTER(...) do {} while(0)
+            i\
+#define SET_BOOSTER  do {} while(0)
+            i\
+#define REMOVE_BOOSTER do {} while(0)
+            i\
+#endif
+          }' include/linux/input/input.h
 
       - name: Build
         run: |
