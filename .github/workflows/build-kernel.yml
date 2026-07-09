@@ -20,7 +20,13 @@ jobs:
       - name: Install deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y make bc bison flex libssl-dev kmod cpio xz-utils wget gcc-aarch64-linux-gnu
+          sudo apt-get install -y make bc bison flex libssl-dev kmod cpio xz-utils wget
+
+      - name: Setup TC (Linaro 7.5)
+        run: |
+          wget -q https://snapshots.linaro.org/gnu/gcc-linaro-7.5.0-2019.12/aarch64-linux-gnu/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz
+          tar -xf gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz
+          echo "$(pwd)/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu/bin" >> $GITHUB_PATH
 
       - name: Patch kernel sources
         run: |
@@ -48,10 +54,7 @@ jobs:
           export ARCH=arm64
           export KCONFIG_NOTIMESTAMP=true
           export ANDROID_MAJOR_VERSION=14
-          # Set KBUILD_CFLAGS before invoking make
           make -j$(nproc) O=out Image 2>&1
-        env:
-          KBUILD_CFLAGS: -Wno-error
 
       - name: Upload Image
         uses: actions/upload-artifact@v4
