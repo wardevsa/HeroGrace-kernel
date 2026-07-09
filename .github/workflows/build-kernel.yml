@@ -20,13 +20,12 @@ jobs:
       - name: Install deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y make bc bison flex libssl-dev kmod cpio xz-utils wget
+          sudo apt-get install -y make bc bison flex libssl-dev kmod cpio xz-utils git
 
-      - name: Setup TC (Linaro 7.5)
+      - name: Setup TC
         run: |
-          wget -q https://snapshots.linaro.org/gnu/gcc-linaro-7.5.0-2019.12/aarch64-linux-gnu/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz
-          tar -xf gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz
-          echo "$(pwd)/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu/bin" >> $GITHUB_PATH
+          git clone --depth 1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 tc 2>&1 | tail -3
+          echo "$(pwd)/tc/bin" >> $GITHUB_PATH
 
       - name: Patch kernel sources
         run: |
@@ -41,7 +40,7 @@ jobs:
 
       - name: Set up build config
         run: |
-          export CROSS_COMPILE=aarch64-linux-gnu-
+          export CROSS_COMPILE=aarch64-linux-android-
           export ARCH=arm64
           export KCONFIG_NOTIMESTAMP=true
           export ANDROID_MAJOR_VERSION=14
@@ -50,7 +49,7 @@ jobs:
 
       - name: Build
         run: |
-          export CROSS_COMPILE=aarch64-linux-gnu-
+          export CROSS_COMPILE=aarch64-linux-android-
           export ARCH=arm64
           export KCONFIG_NOTIMESTAMP=true
           export ANDROID_MAJOR_VERSION=14
