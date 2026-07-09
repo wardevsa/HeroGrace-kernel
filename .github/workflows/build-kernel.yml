@@ -11,7 +11,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: boloaimer/HeroGrace-kernel
-          ref: boloaimer
+          ref: OneUI-8-exp
           fetch-depth: 1
 
       - name: Init submodules
