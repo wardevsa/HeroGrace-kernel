@@ -48,6 +48,11 @@ jobs:
             sed -i "/^# CONFIG_${opt} is not set/d;/^CONFIG_${opt}=/d" out/.config
             echo "CONFIG_${opt}=y" >> out/.config
           done
+          # Force Mali GPU driver (T880 MP12) - DDK_VERSION_OS="u" no matchea defaults del choice
+          for opt in MALI_T8XX MALI_R7P0; do
+            sed -i "/^# CONFIG_${opt} is not set/d;/^CONFIG_${opt}=/d" out/.config
+            echo "CONFIG_${opt}=y" >> out/.config
+          done
           # Re-sync config after forced changes
           make O=out olddefconfig 2>&1
           make -j$(nproc) O=out Image 2>&1
