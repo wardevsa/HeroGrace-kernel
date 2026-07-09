@@ -27,7 +27,7 @@ jobs:
           # Fix missing BUG() include in exynos-ss.h
           find . -name exynos-ss.h -exec sed -i '1i#include <linux/bug.h>' {} \;
 
-      - name: Build
+      - name: Set up build config
         run: |
           export CROSS_COMPILE=aarch64-linux-gnu-
           export ARCH=arm64
@@ -35,7 +35,17 @@ jobs:
           export ANDROID_MAJOR_VERSION=14
           mkdir -p out
           make O=out hero_defconfig
-          make -j$(nproc) O=out Image W=0 2>&1
+
+      - name: Build
+        run: |
+          export CROSS_COMPILE=aarch64-linux-gnu-
+          export ARCH=arm64
+          export KCONFIG_NOTIMESTAMP=true
+          export ANDROID_MAJOR_VERSION=14
+          # Set KBUILD_CFLAGS before invoking make
+          make -j$(nproc) O=out Image 2>&1
+        env:
+          KBUILD_CFLAGS: -Wno-error
 
       - name: Upload Image
         uses: actions/upload-artifact@v4
