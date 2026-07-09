@@ -57,6 +57,14 @@ jobs:
           done
           # Re-sync config after forced scheduler changes
           make O=out olddefconfig 2>&1
+          # Stubs for missing Samsung symbols (linker undefined references)
+          printf '%s\n' 'void exynos_ss_panic_handler_safe(void) { }' \
+            'void restore_pcpu_tick(void) { }' \
+            'void save_pcpu_tick(void) { }' \
+            'int lcd_is_on(void) { return 0; }' \
+            'void update_cp_available(void) { }' \
+            'void acct_update_power(void) { }' > kernel/exynos_stubs.c
+          echo 'obj-y += exynos_stubs.o' >> kernel/Makefile
           # Force Mali GPU (T8XX + r7p0 for S7 Mali-T880)
           for opt in MALI_T8XX MALI_R7P0; do
             sed -i "/^# CONFIG_${opt} is not set/d;/^CONFIG_${opt}=/d" out/.config
