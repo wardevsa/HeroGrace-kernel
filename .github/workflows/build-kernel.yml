@@ -24,8 +24,9 @@ jobs:
 
       - name: Setup TC
         run: |
-          git clone --depth 1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 tc 2>&1 | tail -3
-          echo "$(pwd)/tc/bin" >> $GITHUB_PATH
+          wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/8.3-2019.03/binrel/gcc-arm-8.3-2019.03-x86_64-aarch64-linux-gnu.tar.xz -O gcc-arm.tar.xz
+          tar -xf gcc-arm.tar.xz
+          echo "$(pwd)/gcc-arm-8.3-2019.03-x86_64-aarch64-linux-gnu/bin" >> $GITHUB_PATH
 
       - name: Patch kernel sources
         run: |
@@ -40,7 +41,7 @@ jobs:
 
       - name: Set up build config
         run: |
-          export CROSS_COMPILE=aarch64-linux-android-
+          export CROSS_COMPILE=aarch64-linux-gnu-
           export ARCH=arm64
           export KCONFIG_NOTIMESTAMP=true
           export ANDROID_MAJOR_VERSION=14
@@ -49,7 +50,7 @@ jobs:
 
       - name: Build
         run: |
-          export CROSS_COMPILE=aarch64-linux-android-
+          export CROSS_COMPILE=aarch64-linux-gnu-
           export ARCH=arm64
           export KCONFIG_NOTIMESTAMP=true
           export ANDROID_MAJOR_VERSION=14
