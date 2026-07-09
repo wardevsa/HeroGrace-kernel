@@ -31,6 +31,8 @@ jobs:
           find . -name "*.c" -exec sed -i '/exynos_ss_panic_handler_safe(/d' {} \;
           find . -name "*.c" -exec sed -i 's/exynos_ss_clockevent([^)]*);//g' {} \;
           find . -name nmi.h -exec sed -i 's/void void sl_softirq_entry/void sl_softirq_entry/' {} \;
+          # dlog_hook.c: missing includes for magic.h and sched.h
+          sed -i '/^#include "mount.h"/a #include <linux/sched.h>\n#include <linux/magic.h>' fs/dlog_hook.c
 
       - name: Build
         run: |
