@@ -37,6 +37,7 @@ jobs:
           export CROSS_COMPILE=aarch64-linux-gnu-
           export ARCH=arm64
           export KCONFIG_NOTIMESTAMP=true
+          export PLATFORM_VERSION=14.0.0
           export ANDROID_MAJOR_VERSION=14
           mkdir -p out
           make O=out hero_defconfig
