@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -20,33 +20,20 @@ jobs:
       - name: Install deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y make bc bison flex libssl-dev kmod cpio xz-utils git
+          sudo apt-get install -y make bc bison flex libssl-dev kmod cpio xz-utils gcc-aarch64-linux-gnu
 
-      - name: Setup TC
+      - name: Fix kernel source for GCC 12
         run: |
-          wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/8.3-2019.03/binrel/gcc-arm-8.3-2019.03-x86_64-aarch64-linux-gnu.tar.xz -O gcc-arm.tar.xz
-          tar -xf gcc-arm.tar.xz
-          echo "$(pwd)/gcc-arm-8.3-2019.03-x86_64-aarch64-linux-gnu/bin" >> $GITHUB_PATH
-
-      - name: Patch kernel sources
-        run: |
-          # Fix missing BUG() include in exynos-ss.h
+          # Fix exynos-ss.h: add BUG include, remove macro that conflicts
           find . -name exynos-ss.h -exec sed -i '1i#include <linux/bug.h>' {} \;
-          # Remove exynos_ss_panic_handler_safe macro + all calls + externs (breaks with GCC 10+)
           find . -name exynos-ss.h -exec sed -i '/exynos_ss_panic_handler_safe/d' {} \;
           find . -name "*.c" -exec sed -i 's/exynos_ss_panic_handler_safe([^)]*);//g' {} \;
-          find . -name "*.c" -exec sed -i '/extern.*exynos_ss_panic_handler_safe/d' {} \;
-          # Fix double void in nmi.h (GCC 13+)
+          # Fix nmi.h double void
           find . -name nmi.h -exec sed -i 's/void void sl_softirq_entry/void sl_softirq_entry/' {} \;
-
-      - name: Set up build config
-        run: |
-          export CROSS_COMPILE=aarch64-linux-gnu-
-          export ARCH=arm64
-          export KCONFIG_NOTIMESTAMP=true
-          export ANDROID_MAJOR_VERSION=14
-          mkdir -p out
-          make O=out hero_defconfig
+          # Fix fault.c: the extern void declaration needs static
+          find . -path "*mm/fault.c" -exec sed -i 's/^void show_pte/static void show_pte/' {} \;
+          # Force kernel to build with GNU89 standard (needed for 3.18 kernel)
+          echo 'KBUILD_CFLAGS += -std=gnu89' >> Makefile
 
       - name: Build
         run: |
@@ -54,6 +41,8 @@ jobs:
           export ARCH=arm64
           export KCONFIG_NOTIMESTAMP=true
           export ANDROID_MAJOR_VERSION=14
+          mkdir -p out
+          make O=out hero_defconfig
           make -j$(nproc) O=out Image 2>&1
 
       - name: Upload Image
