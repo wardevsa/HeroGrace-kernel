@@ -20,27 +20,21 @@ jobs:
       - name: Install deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y make bc bison flex libssl-dev kmod cpio xz-utils wget
-
-      - name: Setup toolchain
-        run: |
-          git clone --depth 1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 tc
-          echo "$(pwd)/tc/bin" >> $GITHUB_PATH
+          sudo apt-get install -y make bc bison flex libssl-dev kmod cpio xz-utils wget gcc-aarch64-linux-gnu
 
       - name: Build
         run: |
-          export CROSS_COMPILE=aarch64-linux-android-
+          export CROSS_COMPILE=aarch64-linux-gnu-
           export ARCH=arm64
           export KCONFIG_NOTIMESTAMP=true
           export ANDROID_MAJOR_VERSION=14
           mkdir -p out
           make O=out hero_defconfig
-          make -j$(nproc) O=out Image
-          find ${{ github.workspace }}/out -name 'Image' -type f 2>/dev/null || find out -name 'Image' -type f
+          make -j$(nproc) O=out Image 2>&1
 
-      - name: Upload
+      - name: Upload Image
         uses: actions/upload-artifact@v4
         with:
           name: HeroGrace-kernel-Image
-          path: ${{ github.workspace }}/out/arch/arm64/boot/Image
-          if-no-files-found: warn
+          path: out/arch/arm64/boot/Image
+          if-no-files-found: error
