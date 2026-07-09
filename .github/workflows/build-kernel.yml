@@ -1,9 +1,8 @@
 name: Build HeroGrace Kernel
 
 on:
-  push:
-    branches: [ stable ]
   workflow_dispatch:
+  push:
 
 jobs:
   build:
@@ -11,7 +10,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: stable
+          repository: boloaimer/HeroGrace-kernel
+          ref: boloaimer
           fetch-depth: 1
 
       - name: Init submodules
@@ -21,19 +21,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y make bc bison flex libssl-dev kmod cpio xz-utils gcc-aarch64-linux-gnu
-
-      - name: Fix kernel source for GCC 12
-        run: |
-          # Fix exynos-ss.h: add BUG include, remove macro that conflicts
-          find . -name exynos-ss.h -exec sed -i '1i#include <linux/bug.h>' {} \;
-          find . -name exynos-ss.h -exec sed -i '/exynos_ss_panic_handler_safe/d' {} \;
-          find . -name "*.c" -exec sed -i 's/exynos_ss_panic_handler_safe([^)]*);//g' {} \;
-          # Fix nmi.h double void
-          find . -name nmi.h -exec sed -i 's/void void sl_softirq_entry/void sl_softirq_entry/' {} \;
-          # Fix fault.c: the extern void declaration needs static
-          find . -path "*mm/fault.c" -exec sed -i 's/^void show_pte/static void show_pte/' {} \;
-          # Force kernel to build with GNU89 standard (needed for 3.18 kernel)
-          echo 'KBUILD_CFLAGS += -std=gnu89' >> Makefile
 
       - name: Build
         run: |
