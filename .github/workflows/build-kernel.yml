@@ -27,12 +27,10 @@ jobs:
           find . -name exynos-ss.h -exec sed -i '1i#include <linux/bug.h>' {} \;
           find . -name exynos-ss.h -exec sed -i '/exynos_ss_panic_handler_safe/d' {} \;
           find . -name exynos-ss.h -exec sed -i '/exynos_ss_clockevent/d' {} \;
-          find . -name "*.c" -exec sed -i 's/exynos_ss_panic_handler_safe([^)]*);//g' {} \;
+          find . -name "*.c" -exec sed -i '/extern.*exynos_ss_panic_handler_safe/d' {} \;
+          find . -name "*.c" -exec sed -i '/exynos_ss_panic_handler_safe(/d' {} \;
           find . -name "*.c" -exec sed -i 's/exynos_ss_clockevent([^)]*);//g' {} \;
           find . -name nmi.h -exec sed -i 's/void void sl_softirq_entry/void sl_softirq_entry/' {} \;
-          # Enable CONFIG_FAIR_GROUP_SCHED which is needed for rq->avg in Samsung HMP scheduler
-          echo 'CONFIG_FAIR_GROUP_SCHED=y' >> arch/arm64/configs/hero_defconfig
-          echo 'CONFIG_CFS_BANDWIDTH=y' >> arch/arm64/configs/hero_defconfig
 
       - name: Build
         run: |
@@ -42,6 +40,13 @@ jobs:
           export ANDROID_MAJOR_VERSION=14
           mkdir -p out
           make O=out hero_defconfig
+          # Force config options needed by Samsung scheduler (WALT/HMP load avg)
+          for opt in CGROUPS CGROUP_SCHED FAIR_GROUP_SCHED CFS_BANDWIDTH; do
+            sed -i "/^# CONFIG_${opt} is not set/d;/^CONFIG_${opt}=/d" out/.config
+            echo "CONFIG_${opt}=y" >> out/.config
+          done
+          # Re-sync config after forced changes
+          make O=out olddefconfig 2>&1
           make -j$(nproc) O=out Image 2>&1
         env:
           KBUILD_CFLAGS: -Wno-error
