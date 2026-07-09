@@ -48,13 +48,15 @@ jobs:
             sed -i "/^# CONFIG_${opt} is not set/d;/^CONFIG_${opt}=/d" out/.config
             echo "CONFIG_${opt}=y" >> out/.config
           done
-          # Force Mali GPU driver (T880 MP12) - DDK_VERSION_OS="u" no matchea defaults del choice
+          # Re-sync config after forced scheduler changes
+          make O=out olddefconfig 2>&1
+          # Force Mali GPU driver AFTER olddefconfig to avoid choice default override
           for opt in MALI_T8XX MALI_R7P0; do
             sed -i "/^# CONFIG_${opt} is not set/d;/^CONFIG_${opt}=/d" out/.config
             echo "CONFIG_${opt}=y" >> out/.config
           done
-          # Re-sync config after forced changes
-          make O=out olddefconfig 2>&1
+          # Patch arm/Kbuild: make r7p0 conditional always true so obj-y is added
+          sed -i 's/ifeq ($(CONFIG_MALI_R7P0),y)/ifeq (y,y)/' drivers/gpu/arm/Kbuild
           make -j$(nproc) O=out Image 2>&1
         env:
           KBUILD_CFLAGS: -Wno-error
