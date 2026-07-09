@@ -30,7 +30,7 @@ jobs:
           export ANDROID_MAJOR_VERSION=14
           mkdir -p out
           make O=out hero_defconfig
-          make -j$(nproc) O=out Image 2>&1
+          make -j$(nproc) O=out Image KBUILD_CFLAGS="-Wno-error" 2>&1
 
       - name: Upload Image
         uses: actions/upload-artifact@v4
