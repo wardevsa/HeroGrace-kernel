@@ -26,6 +26,8 @@ jobs:
         run: |
           # Fix missing BUG() include in exynos-ss.h
           find . -name exynos-ss.h -exec sed -i '1i#include <linux/bug.h>' {} \;
+          # Fix exynos_ss_panic_handler_safe macro - kernel calls it with arg but macro takes 0
+          find . -name exynos-ss.h -exec sed -i 's/exynos_ss_panic_handler_safe()/exynos_ss_panic_handler_safe(...)/g' {} \;
 
       - name: Set up build config
         run: |
