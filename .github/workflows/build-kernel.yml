@@ -33,9 +33,17 @@ jobs:
           find . -name nmi.h -exec sed -i 's/void void sl_softirq_entry/void sl_softirq_entry/' {} \;
           # dlog_hook.c: missing includes for magic.h and sched.h
           sed -i '/^#include "mount.h"/a #include <linux/sched.h>\n#include <linux/magic.h>' fs/dlog_hook.c
-          # input/input.h: provide dummy booster macros for missing CONFIG_ARCH_EXYNOS
-          printf '%s\n' '/^#if defined(CONFIG_ARCH_EXYNOS)/ {' 'i\' '#ifndef CONFIG_ARCH_EXYNOS' 'i\' '#define PROPERTY_BOOSTER(...) do {} while(0)' 'i\' '#define SET_BOOSTER do {} while(0)' 'i\' '#define REMOVE_BOOSTER do {} while(0)' 'i\' '#endif' '}' > /tmp/patch_booster.sed
-          sed -i -f /tmp/patch_booster.sed include/linux/input/input.h
+          # input/input.h: disable CONFIG_ARCH_EXYNOS booster block entirely
+          python3 -c "
+with open('include/linux/input/input.h') as f:
+    c = f.read()
+# If CONFIG_ARCH_EXYNOS is not set, wrap the whole booster block in #if 0
+import re
+# replace the first occurrence of '#if defined(CONFIG_ARCH_EXYNOS)' with '#if 0'
+c = c.replace('#if defined(CONFIG_ARCH_EXYNOS)', '#if 0 /* disabled: CONFIG_ARCH_EXYNOS not set */', 1)
+with open('include/linux/input/input.h', 'w') as f:
+    f.write(c)
+"
 
       - name: Build
         run: |
