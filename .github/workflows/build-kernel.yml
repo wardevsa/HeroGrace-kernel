@@ -50,8 +50,8 @@ jobs:
           done
           # Re-sync config after forced scheduler changes
           make O=out olddefconfig 2>&1
-          # Force Mali GPU driver AFTER olddefconfig to avoid choice default override
-          for opt in MALI_T8XX MALI_R7P0; do
+          # Force Exynos arch and Mali GPU (input booster macros need ARCH_EXYNOS)
+          for opt in ARCH_EXYNOS MALI_T8XX MALI_R7P0; do
             sed -i "/^# CONFIG_${opt} is not set/d;/^CONFIG_${opt}=/d" out/.config
             echo "CONFIG_${opt}=y" >> out/.config
           done
